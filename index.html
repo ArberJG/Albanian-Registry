@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Albanian-American Political Registry</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #1a1a1a;
+      color: #f0f0f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ctext y='140' font-size='160' opacity='0.04' fill='%23cc0000'%3E🦅%3C/text%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 60%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      z-index: 1;
+    }
+
+    .flag-bar {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .flag-bar span { display: inline-block; width: 60px; height: 8px; border-radius: 4px; }
+    .flag-bar .red   { background: #cc0000; }
+    .flag-bar .gap   { width: 8px; }
+    .flag-bar .black { background: #111; border: 1px solid #444; }
+
+    header h1 { font-size: 1.8rem; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
+    header h1 span { color: #cc0000; }
+    header p { margin-top: 8px; color: #aaa; font-size: 0.95rem; max-width: 420px; }
+
+    /* ── Counter banner ── */
+    .counter-banner {
+      z-index: 1;
+      width: 100%;
+      max-width: 520px;
+      background: #1f1f1f;
+      border: 1px solid #2e2e2e;
+      border-radius: 10px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .counter-banner .dot {
+      width: 8px; height: 8px;
+      background: #cc0000;
+      border-radius: 50%;
+      animation: pulse 1.8s infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.7); }
+    }
+
+    .counter-banner span {
+      font-size: 0.88rem;
+      color: #aaa;
+    }
+
+    .counter-banner strong { color: #fff; font-size: 1rem; }
+
+    /* ── Card ── */
+    .card {
+      background: #242424;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 36px 40px;
+      width: 100%;
+      max-width: 520px;
+      z-index: 1;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #cc0000;
+      margin-bottom: 14px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #333;
+    }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .field { display: flex; flex-direction: column; margin-bottom: 18px; }
+
+    .field label { font-size: 0.82rem; color: #bbb; margin-bottom: 6px; font-weight: 500; }
+    .field label .req { color: #cc0000; margin-left: 2px; }
+
+    .field input,
+    .field select {
+      background: #1a1a1a;
+      border: 1px solid #3a3a3a;
+      border-radius: 7px;
+      color: #f0f0f0;
+      font-size: 0.95rem;
+      padding: 10px 13px;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+
+    .field input::placeholder { color: #555; }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: #cc0000;
+      box-shadow: 0 0 0 3px rgba(204,0,0,0.12);
+    }
+
+    .field select option { background: #242424; }
+
+    .spacer { margin-bottom: 8px; }
+
+    .privacy-note { font-size: 0.78rem; color: #666; margin-bottom: 14px; line-height: 1.5; }
+
+    .btn {
+      width: 100%;
+      padding: 13px;
+      background: #cc0000;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: background 0.2s, transform 0.1s;
+      margin-top: 8px;
+    }
+    .btn:hover  { background: #aa0000; }
+    .btn:active { transform: scale(0.98); }
+
+    /* ── Success screen ── */
+    .success { display: none; }
+
+    .success-top {
+      text-align: center;
+      padding: 20px 0 24px;
+      border-bottom: 1px solid #333;
+      margin-bottom: 24px;
+    }
+
+    .success-top .eagle { font-size: 2.8rem; margin-bottom: 10px; }
+    .success-top h2 { color: #fff; font-size: 1.4rem; margin-bottom: 6px; }
+    .success-top .tagline { color: #aaa; font-size: 0.9rem; }
+
+    .registrant-badge {
+      display: inline-block;
+      background: #cc0000;
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+
+    .reg-number {
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .reg-number span { color: #cc0000; }
+
+    /* ── Stats ── */
+    .stats-heading {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #cc0000;
+      margin-bottom: 14px;
+    }
+
+    .stat-card {
+      background: #1e1e1e;
+      border: 1px solid #2e2e2e;
+      border-radius: 9px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+
+    .stat-card .stat-number {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.1;
+    }
+
+    .stat-card .stat-number.red { color: #cc0000; }
+
+    .stat-card .stat-label {
+      font-size: 0.82rem;
+      color: #888;
+      margin-top: 3px;
+      line-height: 1.4;
+    }
+
+    .stat-card .stat-note {
+      font-size: 0.75rem;
+      color: #555;
+      margin-top: 5px;
+      font-style: italic;
+    }
+
+    .compare-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .compare-row .stat-card { margin-bottom: 0; }
+
+    .callout {
+      background: rgba(204,0,0,0.08);
+      border: 1px solid rgba(204,0,0,0.25);
+      border-radius: 9px;
+      padding: 14px 16px;
+      margin-top: 14px;
+      font-size: 0.85rem;
+      color: #ccc;
+      line-height: 1.6;
+    }
+
+    .callout strong { color: #fff; }
+
+    footer {
+      margin-top: 28px;
+      color: #555;
+      font-size: 0.78rem;
+      text-align: center;
+      z-index: 1;
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 24px 20px; }
+      .row, .compare-row { grid-template-columns: 1fr; gap: 0; }
+      .compare-row { gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="flag-bar">
+    <span class="red"></span>
+    <span class="gap"></span>
+    <span class="black"></span>
+  </div>
+  <h1>Albanian-<span>American</span> Registry</h1>
+  <p>Register to strengthen our community's voice in American politics.</p>
+</header>
+
+<!-- Live counter -->
+<div class="counter-banner">
+  <span class="dot"></span>
+  <span><strong id="counterDisplay">0</strong> Albanian-Americans registered on this device</span>
+</div>
+
+<div class="card">
+
+  <!-- ── FORM ── -->
+  <form id="regForm" novalidate>
+
+    <div class="section-label">Personal Information</div>
+
+    <div class="row">
+      <div class="field">
+        <label>First Name <span class="req">*</span></label>
+        <input type="text" id="firstName" placeholder="Arben" required />
+      </div>
+      <div class="field">
+        <label>Last Name <span class="req">*</span></label>
+        <input type="text" id="lastName" placeholder="Krasniqi" required />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Family / Clan Name</label>
+      <input type="text" id="familyName" placeholder="e.g. Krasniqi, Berisha, Demi…" />
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Email <span class="req">*</span></label>
+        <input type="email" id="email" placeholder="you@example.com" required />
+      </div>
+      <div class="field">
+        <label>Age <span class="req">*</span></label>
+        <input type="number" id="age" placeholder="e.g. 34" min="1" max="120" required />
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+    <div class="section-label">Paternal Origin <span style="text-transform:none;font-weight:400;color:#888;">(father's side)</span></div>
+
+    <div class="row">
+      <div class="field">
+        <label>Paternal Country</label>
+        <select id="fatherCountry">
+          <option value="" disabled selected>Select country</option>
+          <option>Albania</option>
+          <option>Kosova</option>
+          <option>North Macedonia</option>
+          <option>Montenegro</option>
+          <option>Serbia (Presheva Valley)</option>
+          <option>Greece (Çamëria)</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Paternal City / Region</label>
+        <input type="text" id="fatherCity" placeholder="e.g. Shkodër, Prizren…" />
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+    <div class="section-label">Maternal Origin <span style="text-transform:none;font-weight:400;color:#888;">(mother's side)</span></div>
+
+    <div class="row">
+      <div class="field">
+        <label>Maternal Country</label>
+        <select id="motherCountry">
+          <option value="" disabled selected>Select country</option>
+          <option>Albania</option>
+          <option>Kosova</option>
+          <option>North Macedonia</option>
+          <option>Montenegro</option>
+          <option>Serbia (Presheva Valley)</option>
+          <option>Greece (Çamëria)</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Maternal City / Region</label>
+        <input type="text" id="motherCity" placeholder="e.g. Vlorë, Gjakova…" />
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+    <div class="section-label">Life in America</div>
+    <p class="privacy-note">This registry is private and only used for community organizing. No data is shared with government agencies.</p>
+
+    <div class="row">
+      <div class="field">
+        <label>City <span class="req">*</span></label>
+        <input type="text" id="usCity" placeholder="e.g. New York" required />
+      </div>
+      <div class="field">
+        <label>ZIP Code <span class="req">*</span></label>
+        <input type="text" id="zipCode" placeholder="e.g. 10001" maxlength="10" required />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>U.S. State of Residence <span class="req">*</span></label>
+      <select id="usState" required>
+        <option value="" disabled selected>Select state</option>
+        <option>Alabama</option><option>Alaska</option><option>Arizona</option>
+        <option>Arkansas</option><option>California</option><option>Colorado</option>
+        <option>Connecticut</option><option>Delaware</option><option>Florida</option>
+        <option>Georgia</option><option>Hawaii</option><option>Idaho</option>
+        <option>Illinois</option><option>Indiana</option><option>Iowa</option>
+        <option>Kansas</option><option>Kentucky</option><option>Louisiana</option>
+        <option>Maine</option><option>Maryland</option><option>Massachusetts</option>
+        <option>Michigan</option><option>Minnesota</option><option>Mississippi</option>
+        <option>Missouri</option><option>Montana</option><option>Nebraska</option>
+        <option>Nevada</option><option>New Hampshire</option><option>New Jersey</option>
+        <option>New Mexico</option><option>New York</option><option>North Carolina</option>
+        <option>North Dakota</option><option>Ohio</option><option>Oklahoma</option>
+        <option>Oregon</option><option>Pennsylvania</option><option>Rhode Island</option>
+        <option>South Carolina</option><option>South Dakota</option><option>Tennessee</option>
+        <option>Texas</option><option>Utah</option><option>Vermont</option>
+        <option>Virginia</option><option>Washington</option><option>West Virginia</option>
+        <option>Wisconsin</option><option>Wyoming</option>
+        <option>Washington D.C.</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Voting Eligibility</label>
+      <select id="votingEligibility">
+        <option value="" disabled selected>Select an option</option>
+        <option value="eligible">I am eligible to vote</option>
+        <option value="not-yet">I am not yet eligible to vote</option>
+        <option value="prefer-not">I prefer not to say</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Generation <span class="req">*</span></label>
+      <select id="generation" required>
+        <option value="" disabled selected>Select generation</option>
+        <option value="immigrant">Immigrant — I immigrated to the U.S.</option>
+        <option value="1st">1st Generation — Born in U.S., parents immigrated</option>
+        <option value="2nd">2nd Generation — Parents born in U.S., grandparents immigrated</option>
+        <option value="3rd">3rd Generation — Grandparents born in U.S., great-grandparents immigrated</option>
+        <option value="4th+">4th Generation or beyond</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn">Register Now</button>
+  </form>
+
+  <!-- ── SUCCESS SCREEN ── -->
+  <div class="success" id="successMsg">
+
+    <div class="success-top">
+      <div class="eagle">🦅</div>
+      <div class="registrant-badge">Registered</div>
+      <div class="reg-number">#<span id="regNumber">1</span></div>
+      <h2 id="successName"></h2>
+      <p class="tagline">You are part of something bigger. Share this with every Albanian you know.</p>
+    </div>
+
+    <div class="stats-heading">Why this registry matters</div>
+
+    <div class="stat-card">
+      <div class="stat-number red">~500,000</div>
+      <div class="stat-label">Estimated Albanian-Americans in the United States</div>
+      <div class="stat-note">The real number may be significantly higher — no one knows for certain.</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-number red">0</div>
+      <div class="stat-label">Official U.S. Census categories for "Albanian" ancestry</div>
+      <div class="stat-note">Albanians are folded into "other European" — making us statistically invisible to policymakers.</div>
+    </div>
+
+    <div class="stats-heading" style="margin-top:20px;">How we compare to other groups</div>
+
+    <div class="compare-row">
+      <div class="stat-card">
+        <div class="stat-number">~3M</div>
+        <div class="stat-label">Greek-Americans</div>
+        <div class="stat-note">Have a Congressional Hellenic Caucus & dedicated federal programs.</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">~350K</div>
+        <div class="stat-label">Bosnian-Americans</div>
+        <div class="stat-note">Organized community networks, recognized diaspora with growing political presence.</div>
+      </div>
+    </div>
+
+    <div class="compare-row">
+      <div class="stat-card">
+        <div class="stat-number">~200K</div>
+        <div class="stat-label">Serbian-Americans</div>
+        <div class="stat-note">Smaller than us — yet more politically visible with established advocacy groups.</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number red">~500K</div>
+        <div class="stat-label">Albanian-Americans</div>
+        <div class="stat-note">No caucus. No federal recognition. No official count.</div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Without data, we don't exist politically.</strong> Funding, representation, outreach, and policy all flow to communities that can prove their size. Greeks, Italians, and Irish built political power over generations by organizing and being counted. Every registration here is a step toward making Albanian-Americans impossible to ignore.
+    </div>
+
+  </div>
+</div>
+
+<footer>Albanian-American Political Registry &mdash; Building political power together.</footer>
+
+<script>
+  const STORAGE_KEY = 'albanian_registry_count';
+
+  function getCount() {
+    try {
+      return parseInt(localStorage.getItem(STORAGE_KEY) || '6562', 10);
+    } catch (e) {
+      return 6562;
+    }
+  }
+
+  function incrementCount() {
+    try {
+      const next = getCount() + 1;
+      localStorage.setItem(STORAGE_KEY, next);
+      return next;
+    } catch (e) {
+      return getCount() + 1;
+    }
+  }
+
+  function updateBanner(count) {
+    document.getElementById('counterDisplay').textContent = count.toLocaleString();
+  }
+
+  updateBanner(getCount());
+
+  document.getElementById('regForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const required = [
+      { id: 'firstName' },
+      { id: 'lastName' },
+      { id: 'email' },
+      { id: 'age' },
+      { id: 'usCity' },
+      { id: 'zipCode' },
+      { id: 'usState' },
+      { id: 'generation' },
+    ];
+
+    let valid = true;
+    for (const f of required) {
+      const el = document.getElementById(f.id);
+      el.style.borderColor = '';
+      if (!el.value.trim()) {
+        el.style.borderColor = '#cc0000';
+        if (valid) el.focus();
+        valid = false;
+      }
+    }
+
+    const emailEl = document.getElementById('email');
+    if (emailEl.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value)) {
+      emailEl.style.borderColor = '#cc0000';
+      if (valid) emailEl.focus();
+      valid = false;
+    }
+
+    if (!valid) return;
+
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSIGzSU3YTgeWvq_Ybo0UcMrqoDHH_G2E3_tU3NWZdh5xJRvBl1lmfY2Ld0ebP2qkX/exec';
+
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName  = document.getElementById('lastName').value.trim();
+
+    const payload = new URLSearchParams({
+      firstName,
+      lastName,
+      familyName:       document.getElementById('familyName').value.trim(),
+      email:            document.getElementById('email').value.trim(),
+      age:              document.getElementById('age').value.trim(),
+      fatherCountry:    document.getElementById('fatherCountry').value,
+      fatherCity:       document.getElementById('fatherCity').value.trim(),
+      motherCountry:    document.getElementById('motherCountry').value,
+      motherCity:       document.getElementById('motherCity').value.trim(),
+      usCity:           document.getElementById('usCity').value.trim(),
+      zipCode:          document.getElementById('zipCode').value.trim(),
+      usState:          document.getElementById('usState').value,
+      votingEligibility:document.getElementById('votingEligibility').value,
+      generation:       document.getElementById('generation').value,
+    });
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: payload,
+    }).catch(() => {});
+
+    const count = incrementCount();
+    updateBanner(count);
+
+    document.getElementById('regNumber').textContent = count.toLocaleString();
+    document.getElementById('successName').textContent = firstName + ' ' + lastName;
+
+    document.getElementById('regForm').style.display = 'none';
+    document.getElementById('successMsg').style.display = 'block';
+  });
+</script>
+
+</body>
+</html>
